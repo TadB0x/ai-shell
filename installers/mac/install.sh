@@ -1,51 +1,52 @@
 #!/usr/bin/env bash
 set -e
 
-INSTALL_DIR="/usr/local/bin"
-BINARY_NAME="ai"
+INSTALL_DIR="/usr/local/lib/ai-shell"
+BIN="/usr/local/bin/ai"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# Detect architecture
-ARCH="$(uname -m)"
-if [ "$ARCH" = "arm64" ]; then
-  BIN_SOURCE="$SCRIPT_DIR/ai-macos-arm64"
-else
-  BIN_SOURCE="$SCRIPT_DIR/ai-macos-x64"
-fi
 
 echo ""
 echo " ╭─────────────────────────────────────────────╮"
 echo " │       ai-shell installer for macOS          │"
 echo " ╰─────────────────────────────────────────────╯"
 echo ""
-echo "  Architecture : $ARCH"
-echo "  Binary       : $(basename $BIN_SOURCE)"
-echo "  Install to   : $INSTALL_DIR/$BINARY_NAME"
-echo ""
 
-if [ ! -f "$BIN_SOURCE" ]; then
-  echo " [ERROR] Binary not found: $BIN_SOURCE"
-  echo "  Make sure the installer folder is intact."
+# Check Node.js
+if ! command -v node &>/dev/null; then
+  echo " [ERROR] Node.js not found. Install it from https://nodejs.org (v18+)"
   exit 1
 fi
 
-# Check if /usr/local/bin is writable, otherwise use sudo
-if [ -w "$INSTALL_DIR" ]; then
-  cp "$BIN_SOURCE" "$INSTALL_DIR/$BINARY_NAME"
-  chmod 755 "$INSTALL_DIR/$BINARY_NAME"
-else
-  echo "  (requires sudo to write to $INSTALL_DIR)"
-  sudo cp "$BIN_SOURCE" "$INSTALL_DIR/$BINARY_NAME"
-  sudo chmod 755 "$INSTALL_DIR/$BINARY_NAME"
+NODE_VER=$(node -e "process.stdout.write(process.versions.node.split('.')[0])")
+if [ "$NODE_VER" -lt 18 ]; then
+  echo " [ERROR] Node.js v18+ required (found v$NODE_VER). Update at https://nodejs.org"
+  exit 1
 fi
 
-# Remove quarantine attribute (macOS Gatekeeper)
-if command -v xattr &>/dev/null; then
-  xattr -d com.apple.quarantine "$INSTALL_DIR/$BINARY_NAME" 2>/dev/null || true
-fi
-
-echo " ✓ Installed successfully!"
+echo "  Node.js  : $(node --version)"
+echo "  Install  : $INSTALL_DIR"
 echo ""
-echo "  Run: ai config    (set your Anthropic API key)"
-echo "  Then: ai \"list files larger than 100mb\""
+
+if [ -w "/usr/local/lib" ]; then
+  SUDO=""
+else
+  SUDO="sudo"
+  echo "  (requires sudo)"
+fi
+
+# Copy app files
+$SUDO mkdir -p "$INSTALL_DIR"
+$SUDO cp -r "$SCRIPT_DIR/app/." "$INSTALL_DIR/"
+
+# Write launcher
+$SUDO tee "$BIN" > /dev/null << 'LAUNCHER'
+#!/bin/sh
+exec node /usr/local/lib/ai-shell/dist/index.js "$@"
+LAUNCHER
+$SUDO chmod 755 "$BIN"
+
+echo " ✓ Installed!"
+echo ""
+echo "  Run: ai config"
+echo "  Then: ai list files larger than 100mb"
 echo ""
