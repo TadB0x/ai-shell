@@ -6,6 +6,7 @@ export interface AiShellConfig {
   geminiKey?: string
   groqKey?: string
   maxHistory?: number
+  allYes?: boolean
 }
 
 export interface CommandResult {

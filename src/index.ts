@@ -6,6 +6,7 @@ import { runConfig } from './commands/config.js'
 import { runExplain } from './commands/explain.js'
 import { runClearHistory, showHistory } from './commands/history.js'
 import { runQuery } from './commands/query.js'
+import { isAllYes, setAllYes } from './lib/config-manager.js'
 
 const program = new Command()
 
@@ -18,6 +19,8 @@ program
   .option('-c, --copy', 'Copy command to clipboard instead of running')
   .option('-p, --provider <name>', 'AI provider to use: anthropic | gemini | groq')
   .option('-y, --yes', 'Auto-confirm and run all commands without prompting')
+  .option('--all-yes', 'Permanently skip all confirmations for every future command')
+  .option('--no-all-yes', 'Turn off permanent auto-confirm')
   .addHelpText('after', `
 ${chalk.bold('Examples:')}
   ${chalk.cyan('$')} ai "show all files larger than 100mb"
@@ -28,7 +31,19 @@ ${chalk.bold('Examples:')}
   ${chalk.cyan('$')} ai config
   ${chalk.cyan('$')} ai history
   `)
-  .action(async (queryParts: string[], options: { explain?: string; copy?: boolean; provider?: string; yes?: boolean }) => {
+  .action(async (queryParts: string[], options: { explain?: string; copy?: boolean; provider?: string; yes?: boolean; allYes?: boolean }) => {
+    // Handle --all-yes / --no-all-yes toggle
+    if (options.allYes === true) {
+      setAllYes(true)
+      console.log(chalk.green('  ✓ All-yes mode ON — all future commands will run without confirmation.'))
+      console.log(chalk.dim('  Run `ai --no-all-yes` to turn it off.'))
+      if (queryParts.length === 0 && !options.explain) return
+    } else if (options.allYes === false) {
+      setAllYes(false)
+      console.log(chalk.yellow('  ✓ All-yes mode OFF — confirmations restored.'))
+      if (queryParts.length === 0 && !options.explain) return
+    }
+
     if (options.explain) {
       await runExplain(options.explain, options.provider)
       return
@@ -37,7 +52,9 @@ ${chalk.bold('Examples:')}
       program.help()
       return
     }
-    await runQuery(queryParts.join(' '), { copy: !!options.copy, provider: options.provider, yes: !!options.yes })
+
+    const autoYes = !!options.yes || isAllYes()
+    await runQuery(queryParts.join(' '), { copy: !!options.copy, provider: options.provider, yes: autoYes })
   })
 
 program

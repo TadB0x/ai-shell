@@ -19,6 +19,13 @@ export function saveConfig(config) {
     fs.mkdirSync(CONFIG_DIR, { recursive: true });
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), { mode: 0o600 });
 }
+export function isAllYes() {
+    return getConfig()?.allYes === true;
+}
+export function setAllYes(value) {
+    const config = getConfig() ?? { defaultProvider: 'groq' };
+    saveConfig({ ...config, allYes: value });
+}
 export function hasAnyKey() {
     const config = getConfig();
     return !!(config?.anthropicKey || config?.geminiKey || config?.groqKey);

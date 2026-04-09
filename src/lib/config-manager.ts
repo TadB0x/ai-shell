@@ -24,6 +24,15 @@ export function saveConfig(config: AiShellConfig): void {
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), { mode: 0o600 })
 }
 
+export function isAllYes(): boolean {
+  return getConfig()?.allYes === true
+}
+
+export function setAllYes(value: boolean): void {
+  const config = getConfig() ?? { defaultProvider: 'groq' as const }
+  saveConfig({ ...config, allYes: value })
+}
+
 export function hasAnyKey(): boolean {
   const config = getConfig()
   return !!(config?.anthropicKey || config?.geminiKey || config?.groqKey)

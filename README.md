@@ -10,7 +10,7 @@
 
 Don't know the exact command? Just describe what you want. **ai-shell** turns your words into a shell command, explains what it does, and asks before running it.
 
-Powered by [Claude AI](https://anthropic.com) (Haiku — fast and cheap).
+Supports **Anthropic Claude**, **Google Gemini**, and **Groq** — switch providers per query.
 
 ---
 
@@ -40,14 +40,13 @@ sudo dpkg -i ai-shell_1.0.0_amd64.deb
 
 ### macOS
 ```bash
-# Download and unzip from the table above, then:
+# Download and unzip, then:
 chmod +x install.sh && ./install.sh
 ```
-
-> Apple Silicon (M1/M2/M3) and Intel both supported.
+Apple Silicon (M1/M2/M3) and Intel both supported.
 
 ### Windows
-Download the zip from above, extract it, right-click `install.bat` → **Run as Administrator**.
+Download the zip, extract, right-click `install.bat` → **Run as Administrator**.
 
 ### npm (all platforms, requires Node 18+)
 ```bash
@@ -58,13 +57,17 @@ npm install -g ai-shell
 
 ## Setup
 
-Get a free API key at [console.anthropic.com](https://console.anthropic.com), then:
+Get an API key from any supported provider:
+- [Anthropic Console](https://console.anthropic.com) — Claude Haiku
+- [Google AI Studio](https://aistudio.google.com) — Gemini 2.0 Flash
+- [Groq Console](https://console.groq.com) — Llama 3.3 70B (free, very fast)
 
+Then run:
 ```bash
 ai config
 ```
 
-You'll be prompted to enter your key. It's saved to `~/.ai-shell/config.json`.
+You'll be prompted to enter any/all of your keys and pick a default provider. Keys are saved to `~/.ai-shell/config.json`.
 
 ---
 
@@ -72,36 +75,80 @@ You'll be prompted to enter your key. It's saved to `~/.ai-shell/config.json`.
 
 ### Basic query
 
+No quotes needed for simple queries:
+```bash
+ai list all files larger than 100mb
+ai kill the process on port 3000
+ai show disk usage sorted by size
 ```
-$ ai "show me all files larger than 100mb"
 
-  ╭──────────────────────────────────────────────────╮
-  │  find / -size +100M -type f 2>/dev/null           │
-  ╰──────────────────────────────────────────────────╯
+Use quotes when your query contains shell special characters (`>`, `|`, `&`, `*`):
+```bash
+ai "find files modified in the last 24 hours | sort by size"
+```
 
-  Finds all files larger than 100MB on your system,
-  suppressing permission errors.
+### What it looks like
+
+```
+$ ai show all running processes sorted by memory
+
+  ╭────────────────────────────────────────────╮
+  │  ps aux --sort=-%mem                        │
+  ╰────────────────────────────────────────────╯
+
+  Lists all running processes sorted by memory usage in
+  descending order, showing user, PID, CPU%, MEM%, and command.
+
+  ◆ Groq · llama-3.3-70b-versatile
 
   ? Run this command? (y/N)
 ```
 
-### More examples
+---
 
-```bash
-ai "kill the process running on port 3000"
-ai "compress all jpg files in this folder"
-ai "show disk usage sorted by size"
-ai "find all files modified in the last 24 hours"
-ai "list all docker containers including stopped ones"
-ai "create a new user named john"
-ai "what processes are using the most memory"
-ai "watch log file in real time"
+## All options
+
+```
+Options:
+  -y, --yes              Run immediately, skip confirmation (once)
+  --all-yes              Permanently skip all confirmations forever
+  --no-all-yes           Turn off permanent auto-confirm
+  -c, --copy             Copy command to clipboard instead of running
+  -p, --provider <name>  Use a specific provider: anthropic | gemini | groq
+  -e, --explain <cmd>    Explain what an existing command does
 ```
 
-### Copy to clipboard instead of running
+### Skip confirmation once
 
 ```bash
-ai "list all npm global packages" --copy
+ai delete all log files older than 7 days -y
+ai restart nginx --yes
+```
+
+### Permanently skip all confirmations
+
+Run this once to never be asked again:
+```bash
+ai --all-yes
+```
+
+Every command after this runs immediately without any prompt, including dangerous ones:
+```bash
+ai empty the trash    # runs instantly
+ai rm -rf /tmp/build  # runs instantly, no warning
+```
+
+Turn it back on anytime:
+```bash
+ai --no-all-yes
+```
+
+### Switch provider per query
+
+```bash
+ai list docker containers --provider groq
+ai show memory usage --provider gemini
+ai explain this error --provider anthropic
 ```
 
 ### Explain an existing command
@@ -115,9 +162,8 @@ ai --explain "find . -name '*.js' -not -path '*/node_modules/*'"
   │  find . -name '*.js' -not -path '*/node_modules/*'             │
   ╰────────────────────────────────────────────────────────────────╯
 
-  This command searches the current directory and all subdirectories
-  for files ending in .js, but skips anything inside node_modules
-  folders to avoid scanning dependencies.
+  Searches the current directory recursively for .js files,
+  skipping anything inside node_modules folders.
 ```
 
 ### View history
@@ -132,15 +178,12 @@ ai history --clear
 
 ## Dangerous command detection
 
-ai-shell automatically detects commands that could cause irreversible damage (`rm -rf`, disk writes, fork bombs, etc.) and shows a red warning — requiring you to type `yes` in full before running.
+By default, ai-shell detects commands that could cause irreversible damage (`rm -rf`, disk writes, fork bombs, etc.) and requires you to type `yes` in full before running.
 
 ```
   ╭──────────────────────────╮
   │  rm -rf /tmp/old-project  │
   ╰──────────────────────────╯
-
-  Removes the /tmp/old-project directory and all its contents
-  permanently.
 
   ⚠  WARNING: This command may be dangerous:
      • Recursive force delete (rm -rf)
@@ -149,29 +192,26 @@ ai-shell automatically detects commands that could cause irreversible damage (`r
   Type "yes" to confirm, anything else to cancel:
 ```
 
----
-
-## How it works
-
-1. You describe what you want in plain English
-2. ai-shell sends your query to Claude Haiku (Anthropic's fastest model)
-3. Claude returns a structured response: the exact command + a plain English explanation
-4. ai-shell shows you both, checks for dangerous patterns, and asks before running
-5. The command runs with real-time output streamed to your terminal
-6. Everything is saved to `~/.ai-shell/history.json`
-
-No data is stored on any server other than Anthropic's API for inference.
+Use `-y` or `--all-yes` to bypass this when you know what you're doing.
 
 ---
 
-## Config
+## Providers & Models
+
+| Provider | Model | Speed | Free tier |
+|---|---|---|---|
+| Groq | llama-3.3-70b-versatile | ⚡ Ultra-fast | Yes — generous |
+| Anthropic | claude-haiku-4-5 | Fast | No |
+| Google Gemini | gemini-2.0-flash | Fast | Yes — limited |
+
+---
+
+## Config files
 
 | File | Purpose |
 |---|---|
-| `~/.ai-shell/config.json` | API key and settings |
+| `~/.ai-shell/config.json` | API keys, default provider, settings |
 | `~/.ai-shell/history.json` | Command history (last 500 entries) |
-
-Run `ai config` at any time to update your API key.
 
 ---
 
@@ -181,7 +221,8 @@ Run `ai config` at any time to update your API key.
 git clone https://github.com/TadB0x/ai-shell
 cd ai-shell
 npm install
-npm run build        # TypeScript → dist/
+npm run build           # TypeScript → dist/
+npm run bundle          # esbuild CJS bundle
 npm run build:binaries  # standalone executables → installers/bin/
 ```
 
