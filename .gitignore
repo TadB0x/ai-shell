@@ -1,0 +1,9 @@
+node_modules/
+dist/bundle.cjs
+installers/bin/
+installers/ai-shell_1.0.0_amd64/
+installers/windows/ai-win-x64.exe
+installers/mac/ai-macos-x64
+installers/mac/ai-macos-arm64
+*.tsbuildinfo
+.env
