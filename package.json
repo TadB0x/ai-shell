@@ -1,7 +1,7 @@
 {
   "name": "ai-shell",
   "version": "1.1.0",
-  "description": "Type plain English. Get a shell command — powered by Claude AI.",
+  "description": "Type plain English. Get a shell command — powered by Claude, Gemini, or Groq.",
   "type": "module",
   "bin": {
     "ai": "./dist/index.js"
@@ -39,6 +39,8 @@
     "shell",
     "cli",
     "claude",
+    "gemini",
+    "groq",
     "anthropic",
     "terminal",
     "nlp",
