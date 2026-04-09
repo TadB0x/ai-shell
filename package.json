@@ -4,10 +4,11 @@
   "description": "Type plain English. Get a shell command — powered by Claude, Gemini, or Groq.",
   "type": "module",
   "bin": {
-    "ai": "./dist/index.js"
+    "ai": "./bin/ai.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "bin"
   ],
   "scripts": {
     "build": "tsc",
