@@ -1,6 +1,6 @@
 {
   "name": "ai-shell",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Type plain English. Get a shell command — powered by Claude AI.",
   "type": "module",
   "bin": {
@@ -18,8 +18,10 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.40.0",
+    "@google/genai": "^1.49.0",
     "chalk": "^5.4.1",
     "commander": "^14.0.0",
+    "groq-sdk": "^1.1.2",
     "inquirer": "^12.6.0",
     "ora": "^9.3.0"
   },

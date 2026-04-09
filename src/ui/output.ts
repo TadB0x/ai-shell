@@ -1,11 +1,18 @@
 import chalk, { type ChalkInstance } from 'chalk'
-import type { DangerResult } from '../types.js'
+import type { DangerResult, Provider } from '../types.js'
+import { PROVIDER_LABELS } from '../types.js'
 
 const MIN_BOX_WIDTH = 44
 
+const PROVIDER_BADGE: Record<Provider, string> = {
+  anthropic: chalk.magenta('◆ Claude'),
+  gemini:    chalk.blue('◆ Gemini'),
+  groq:      chalk.green('◆ Groq'),
+}
+
 function buildBox(text: string, borderColor: ChalkInstance): string {
   const termWidth = process.stdout.columns || 80
-  const maxContent = termWidth - 6 // 2 spaces pad each side + 2 border chars
+  const maxContent = termWidth - 6
   const display = text.length > maxContent ? text.slice(0, maxContent - 1) + '…' : text
   const width = Math.max(display.length + 4, MIN_BOX_WIDTH)
   const padded = display.padEnd(width - 4)
@@ -16,7 +23,13 @@ function buildBox(text: string, borderColor: ChalkInstance): string {
   return [top, mid, bot].join('\n')
 }
 
-export function renderOutput(command: string, explanation: string, danger: DangerResult): void {
+export function renderOutput(
+  command: string,
+  explanation: string,
+  danger: DangerResult,
+  provider: Provider,
+  model: string
+): void {
   const borderColor = danger.isDangerous ? chalk.red : chalk.cyan
   console.log()
   console.log(buildBox(command, borderColor))
@@ -31,6 +44,8 @@ export function renderOutput(command: string, explanation: string, danger: Dange
     }
   }
 
+  console.log()
+  console.log('  ' + (PROVIDER_BADGE[provider] ?? provider) + chalk.dim(` · ${model}`))
   console.log()
 }
 
@@ -56,10 +71,12 @@ export function renderHistoryEntry(
   index: number,
   timestamp: string,
   query: string,
-  command: string
+  command: string,
+  provider?: Provider
 ): void {
   const date = new Date(timestamp).toLocaleString()
-  console.log(chalk.dim(`  ${index + 1}. ${date}`))
+  const badge = provider ? ' ' + (PROVIDER_BADGE[provider] ?? '') : ''
+  console.log(chalk.dim(`  ${index + 1}. ${date}`) + badge)
   console.log(chalk.white(`     ${query}`))
   console.log(chalk.cyan(`     $ ${command}`))
   console.log()

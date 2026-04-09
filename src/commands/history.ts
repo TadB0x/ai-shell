@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 import { clearHistory, getHistory } from '../lib/history-manager.js'
+import type { Provider } from '../types.js'
 import { renderHistoryEntry } from '../ui/output.js'
 
 export function showHistory(count: number): void {
@@ -12,7 +13,7 @@ export function showHistory(count: number): void {
   console.log()
   console.log(chalk.bold(`  Last ${entries.length} commands:\n`))
   entries.forEach((entry, i) => {
-    renderHistoryEntry(i, entry.timestamp, entry.query, entry.command)
+    renderHistoryEntry(i, entry.timestamp, entry.query, entry.command, entry.provider as Provider | undefined)
   })
 }
 

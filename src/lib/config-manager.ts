@@ -1,7 +1,7 @@
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import type { AiShellConfig } from '../types.js'
+import type { AiShellConfig, Provider } from '../types.js'
 
 const CONFIG_DIR = path.join(os.homedir(), '.ai-shell')
 const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json')
@@ -24,7 +24,13 @@ export function saveConfig(config: AiShellConfig): void {
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), { mode: 0o600 })
 }
 
-export function hasApiKey(): boolean {
+export function hasAnyKey(): boolean {
   const config = getConfig()
-  return !!config?.apiKey
+  return !!(config?.anthropicKey || config?.geminiKey || config?.groqKey)
+}
+
+export function getActiveProvider(override?: string): Provider {
+  const config = getConfig()
+  if (override) return override as Provider
+  return config?.defaultProvider ?? 'anthropic'
 }

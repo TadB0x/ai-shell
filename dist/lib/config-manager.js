@@ -19,7 +19,13 @@ export function saveConfig(config) {
     fs.mkdirSync(CONFIG_DIR, { recursive: true });
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), { mode: 0o600 });
 }
-export function hasApiKey() {
+export function hasAnyKey() {
     const config = getConfig();
-    return !!config?.apiKey;
+    return !!(config?.anthropicKey || config?.geminiKey || config?.groqKey);
+}
+export function getActiveProvider(override) {
+    const config = getConfig();
+    if (override)
+        return override;
+    return config?.defaultProvider ?? 'anthropic';
 }

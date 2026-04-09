@@ -1,1 +1,1 @@
-export declare function runExplain(command: string): Promise<void>;
+export declare function runExplain(command: string, providerOverride?: string): Promise<void>;

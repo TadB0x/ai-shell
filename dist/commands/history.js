@@ -11,7 +11,7 @@ export function showHistory(count) {
     console.log();
     console.log(chalk.bold(`  Last ${entries.length} commands:\n`));
     entries.forEach((entry, i) => {
-        renderHistoryEntry(i, entry.timestamp, entry.query, entry.command);
+        renderHistoryEntry(i, entry.timestamp, entry.query, entry.command, entry.provider);
     });
 }
 export function runClearHistory() {
