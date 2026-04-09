@@ -2,7 +2,9 @@ import chalk from 'chalk'
 import inquirer from 'inquirer'
 import type { DangerResult } from '../types.js'
 
-export async function confirmRun(danger: DangerResult): Promise<boolean> {
+export async function confirmRun(danger: DangerResult, autoConfirm = false): Promise<boolean> {
+  if (autoConfirm) return true
+
   if (!danger.isDangerous) {
     const { confirmed } = await inquirer.prompt<{ confirmed: boolean }>([
       {

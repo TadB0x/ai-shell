@@ -15,6 +15,7 @@ program
     .option('-e, --explain <command>', 'Explain what a shell command does')
     .option('-c, --copy', 'Copy command to clipboard instead of running')
     .option('-p, --provider <name>', 'AI provider to use: anthropic | gemini | groq')
+    .option('-y, --yes', 'Auto-confirm and run all commands without prompting')
     .addHelpText('after', `
 ${chalk.bold('Examples:')}
   ${chalk.cyan('$')} ai "show all files larger than 100mb"
@@ -34,7 +35,7 @@ ${chalk.bold('Examples:')}
         program.help();
         return;
     }
-    await runQuery(queryParts.join(' '), { copy: !!options.copy, provider: options.provider });
+    await runQuery(queryParts.join(' '), { copy: !!options.copy, provider: options.provider, yes: !!options.yes });
 });
 program
     .command('config')

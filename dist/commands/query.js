@@ -39,7 +39,7 @@ export async function runQuery(query, opts) {
         addHistoryEntry({ query, command: result.command, explanation: result.explanation, provider, model: result.model, executed: false });
         return;
     }
-    const confirmed = await confirmRun(danger);
+    const confirmed = await confirmRun(danger, opts.yes);
     console.log();
     if (!confirmed) {
         console.log(chalk.dim('  Cancelled.'));

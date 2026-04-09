@@ -14,6 +14,7 @@ import { withSpinner } from '../ui/spinner.js'
 export interface QueryOptions {
   copy: boolean
   provider?: string
+  yes: boolean
 }
 
 export async function runQuery(query: string, opts: QueryOptions): Promise<void> {
@@ -51,7 +52,7 @@ export async function runQuery(query: string, opts: QueryOptions): Promise<void>
     return
   }
 
-  const confirmed = await confirmRun(danger)
+  const confirmed = await confirmRun(danger, opts.yes)
   console.log()
 
   if (!confirmed) {

@@ -1,6 +1,8 @@
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-export async function confirmRun(danger) {
+export async function confirmRun(danger, autoConfirm = false) {
+    if (autoConfirm)
+        return true;
     if (!danger.isDangerous) {
         const { confirmed } = await inquirer.prompt([
             {
